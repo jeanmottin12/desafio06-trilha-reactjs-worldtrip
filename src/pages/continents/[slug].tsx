@@ -1,4 +1,5 @@
 import { GetStaticPaths, GetStaticProps } from "next";
+import { useRouter } from "next/router";
 import { getPrismicClient } from "../../services/prismic";
 import Prismic from '@prismicio/client';
 
@@ -7,30 +8,29 @@ import { ContinentBanner } from "../../components/Continent/Banner";
 import { ContinentBio } from "../../components/Continent/ContinentBio";
 import { CitiesPlus100 } from "../../components/Continent/CitiesPlus100";
 
-interface ContinentData {
-  data_number: string;
-  data_text: string;
-}
-
-interface City {
-  city_image: {
-    alt?: string;
-    url: string;
-  };
-  country_flag: {
-    alt?: string;
-    url: string;
-  };
-  country: string;
-  city_name: string;
-}
-
 interface Continent {
-  name: string;
-  intern_banner: string;
-  description: string;
-  continentData: ContinentData[];
-  cities_plus_100: City[];
+  data: {
+    title: string;
+    intern_banner: {
+      url: string;
+    }
+    description: string;
+    continent_data: {
+      data_number: string;
+      data_text: string;
+      tooltip_text?: string;
+    }[];
+    cities_plus_100: {
+      city_image: {
+        url: string;
+      };
+      country_flag: {
+        url: string;
+      };
+      city_name: string;
+      country: string;
+    }[];
+  }
 }
 
 interface ContinentProps {
@@ -38,12 +38,19 @@ interface ContinentProps {
 }
 
 export default function Continent({ continent }: ContinentProps) {
+  const router = useRouter();
+  
+  if (router.isFallback) {
+    return (
+      <h2>Carregando...</h2>
+    );
+  }
   return (
     <>
       <Header />
-      <ContinentBanner title={continent.name} bg={continent.intern_banner} />
-      <ContinentBio description={continent.description} datas={continent.continentData} />
-      {continent.cities_plus_100 && <CitiesPlus100 cities={continent.cities_plus_100} />}
+      <ContinentBanner title={continent.data.title} bg={continent.data.intern_banner.url} />
+      <ContinentBio description={continent.data.description} datas={continent.data.continent_data} />
+      {continent.data.cities_plus_100 && <CitiesPlus100 cities={continent.data.cities_plus_100} />}
     </>
   )
 }
@@ -68,24 +75,16 @@ export const getStaticPaths: GetStaticPaths = async () => {
   }
 }
 
-
 export const getStaticProps: GetStaticProps = async ({ params }) => {
   const prismic = getPrismicClient();
   const { slug } = params;
 
   const response = await prismic.getByUID('continents', String(slug), {});
 
-  const continent = {
-    name: response.data.name[0].text,
-    intern_banner: response.data.intern_banner.url,
-    description: response.data.description,
-    continentData: response.data.continent_data,
-    cities_plus_100: response.data.cities_plus_100
-  }
-
   return {
     props: {
-      continent
-    }
+      continent: response ? response : null
+    },
+    revalidate: 60 * 60 // 1 hora
   }
 }

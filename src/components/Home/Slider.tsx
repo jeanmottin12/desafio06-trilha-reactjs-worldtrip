@@ -8,7 +8,7 @@ SwiperCore.use([Navigation, Pagination, A11y]);
 
 interface Continent {
   uid: string;
-  name: string;
+  title: string;
   short_description: string;
   image: string;
 }
@@ -77,7 +77,7 @@ export function HomeSlider({ continents }: HomeSliderProps) {
                     color="brand_light.900"
                     fontWeight="bold"
                   >
-                    {continent.name}
+                    {continent.title}
                   </Heading>
                   <Text
                     color="brand_light.100"

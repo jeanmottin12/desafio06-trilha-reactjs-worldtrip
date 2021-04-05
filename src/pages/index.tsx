@@ -10,7 +10,7 @@ import { HomeSlider } from "../components/Home/Slider";
 
 interface Continent {
   uid: string;
-  name: string;
+  title: string;
   short_description: string;
   image: string;
 }
@@ -44,7 +44,7 @@ export const getStaticProps: GetStaticProps = async () => {
   const continents = response.results.map(continent => {
     return {
       uid: continent.uid,
-      name: continent.data.name[0].text,
+      title: continent.data.title,
       short_description: continent.data.short_description,
       image: continent.data.home_banner.url
     }
